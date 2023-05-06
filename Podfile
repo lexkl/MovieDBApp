@@ -7,6 +7,8 @@ target 'MovieDBApp' do
 
   # Pods for MovieDBApp
 
+  pod 'SwiftLint'
+
   target 'MovieDBAppTests' do
     inherit! :search_paths
     # Pods for testing
