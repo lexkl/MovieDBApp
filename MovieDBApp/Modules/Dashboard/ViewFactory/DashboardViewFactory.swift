@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import Swinject
 
 protocol DashboardViewControllerFactory {
     func viewController(for segment: DashboardSegment) -> UIViewController
@@ -25,14 +26,29 @@ struct DashboardViewControllerFactoryImpl: DashboardViewControllerFactory {
 
 private extension DashboardViewControllerFactoryImpl {
     func popular() -> UIViewController {
-        let viewController = UIViewController()
-        viewController.view.backgroundColor = .mainGray
-        return viewController
+        let moviesService = Container.shared.resolve(PopularMoviesService.self)!
+        let imageService = Container.shared.resolve(ImageService.self)!
+        let urlFormatter = Container.shared.resolve(URLFormatter.self)!
+        let provider = PopularMoviesProvider(contentService: moviesService,
+                                             imageService: imageService,
+                                             urlFormatter: urlFormatter)
+        return createViewController(provider: provider)
     }
     
     func new() -> UIViewController {
-        let viewController = UIViewController()
-        viewController.view.backgroundColor = .mainGray
+        let moviesService = Container.shared.resolve(PopularMoviesService.self)!
+        let imageService = Container.shared.resolve(ImageService.self)!
+        let urlFormatter = Container.shared.resolve(URLFormatter.self)!
+        let provider = PopularMoviesProvider(contentService: moviesService,
+                                             imageService: imageService,
+                                             urlFormatter: urlFormatter)
+        return createViewController(provider: provider)
+    }
+    
+    func createViewController(provider: DashboardContentProvider) -> UIViewController {
+        let stateMachine = DashboardContentStateMachine()
+        let viewModel = DashboardContentViewModelImpl(provider: provider, stateMachine: stateMachine)
+        let viewController = DashboardContentViewController(viewModel: viewModel)
         return viewController
     }
 }

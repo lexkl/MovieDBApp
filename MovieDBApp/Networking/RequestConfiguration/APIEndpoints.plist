@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>generateToken</key>
+	<string>authentication/token/new</string>
+	<key>createSession</key>
+	<string>authentication/session/new</string>
+	<key>moviePopular</key>
+	<string>movie/popular</string>
+	<key>movieUpcoming</key>
+	<string>movie/upcoming</string>
+	<key>genres</key>
+	<string>genre/movie/list</string>
+</dict>
+</plist>

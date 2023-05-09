@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import UIKit
+import Swinject
 
 protocol DashboardNavigation: AnyObject {
     func segmentChanged(with index: Int)
@@ -21,6 +22,8 @@ final class DashboardCoordinator: Coordinator {
     private let navigation: UINavigationController
     private let segments: [DashboardSegment]
     private let viewControllerFactory: DashboardViewControllerFactory
+    
+    private var cancellables = Set<AnyCancellable>()
     
     init(navigation: UINavigationController,
          segments: [DashboardSegment],

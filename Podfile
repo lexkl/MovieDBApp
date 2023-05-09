@@ -8,6 +8,9 @@ target 'MovieDBApp' do
   # Pods for MovieDBApp
 
   pod 'SwiftLint'
+  pod 'Alamofire'
+  pod 'Swinject'
+  pod 'RealmSwift', '~>10'
 
   target 'MovieDBAppTests' do
     inherit! :search_paths

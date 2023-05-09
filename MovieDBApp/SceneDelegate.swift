@@ -7,6 +7,8 @@
 
 import UIKit
 import Combine
+import Swinject
+import RealmSwift
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -20,6 +22,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         let window = UIWindow(windowScene: windowScene)
         let coordinator = AppCoordinator(window: window, onFinish: {})
+        
+        guard let genresService = Container.shared.resolve(GenresService.self) else { return }
+        
+        DispatchQueue.main.async {
+            self.loadGenres(service: genresService)
+        }
         
         coordinator.start()
         
@@ -54,5 +62,31 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Called as the scene transitions from the foreground to the background.
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
+    }
+}
+
+private extension SceneDelegate {
+    func loadGenres(service: GenresService) {
+        service.load()
+            .sink { error in
+                print(error)
+            } receiveValue: { response in
+                guard let genres = response.genres else { return }
+                
+                do {
+                    try Realm.tryWrite { realm in
+                        for genreAPI in genres {
+                            guard let id = genreAPI.id, let name = genreAPI.name else { return }
+                            
+                            let genre = Genre(id: id, name: name)
+                            realm.add(genre, update: .all)
+                        }
+                    }
+                } catch {
+                    print(error)
+                }
+                
+            }
+            .store(in: &cancellables)
     }
 }
