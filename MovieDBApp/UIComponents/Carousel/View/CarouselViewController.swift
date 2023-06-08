@@ -9,79 +9,32 @@ import Foundation
 import UIKit
 import Combine
 
-final class CarouselViewController: UIViewController {
+final class CarouselViewController: MVVMGenericViewController<CarouselViewModel, CarouselView> {
     private let cellWidth: CGFloat = 200
-    
-    private lazy var carouselCollectionView: UICollectionView = {
-        let layout = CarouselFlowLayout()
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.delegate = self
-        collectionView.dataSource = self
-        collectionView.register(CarouselCell.self, forCellWithReuseIdentifier: CarouselCell.identifier)
-        
-        collectionView.showsHorizontalScrollIndicator = false
-        collectionView.layer.masksToBounds = false
-        collectionView.backgroundColor = UIColor.mainGray
-        view.addSubview(collectionView)
-        return collectionView
-    }()
-    
-    private lazy var pageControl: UIPageControl = {
-        let pageControl = UIPageControl(frame: .zero)
-        pageControl.currentPage = 0
-        pageControl.backgroundStyle = .minimal
-        pageControl.pageIndicatorTintColor = UIColor.secondaryGray
-        pageControl.transform = CGAffineTransform(scaleX: 0.6, y: 0.6)
-        pageControl.currentPageIndicatorTintColor = UIColor.black
-        view.addSubview(pageControl)
-        return pageControl
-    }()
     
     private var data = [CarouselMoviePresentable]()
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        setupCollectionViewConstraints()
-        setupPageControlConstraints()
-    }
+    var currentCell: CarouselCell?
     
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
+    override func bindUI() {
+        rootView.carouselCollectionView.delegate = self
+        rootView.carouselCollectionView.dataSource = self
+        rootView.carouselCollectionView.register(CarouselCell.self, forCellWithReuseIdentifier: CarouselCell.identifier)
     }
     
     func configure(with newData: [CarouselMoviePresentable]) {
         guard !newData.isEmpty else { return }
         data = newData
-        pageControl.numberOfPages = newData.count
-        carouselCollectionView.reloadData()
+        rootView.pageControl.numberOfPages = newData.count
+        rootView.carouselCollectionView.reloadData()
     }
 }
 
 // MARK: - private
 
 private extension CarouselViewController {
-    func setupCollectionViewConstraints() {
-        carouselCollectionView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            carouselCollectionView.topAnchor.constraint(equalTo: view.topAnchor),
-            carouselCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            carouselCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            carouselCollectionView.bottomAnchor.constraint(equalTo: pageControl.topAnchor)
-        ])
-    }
-    
-    func setupPageControlConstraints() {
-        pageControl.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            pageControl.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            pageControl.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            pageControl.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -50)
-        ])
-    }
-    
     func updateCurrentPage(_ page: Int) {
-        pageControl.currentPage = page
+        rootView.pageControl.currentPage = page
     }
 }
 
@@ -102,7 +55,6 @@ extension CarouselViewController: UICollectionViewDelegate, UICollectionViewData
         let movieData = data[indexPath.row]
         let image = movieData.image ?? UIImage(systemName: "trash") ?? UIImage()
         cell.configure(image: image, title: movieData.title, genres: movieData.genres, score: movieData.score)
-        cell.layer.setDefaultShadow()
         
         return cell
     }
@@ -115,18 +67,21 @@ extension CarouselViewController: UICollectionViewDelegate, UICollectionViewData
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard let cell = collectionView.cellForItem(at: indexPath) as? CarouselCell else {
+        guard let cell = collectionView.cellForItem(at: indexPath) as? CarouselCell,
+              let image = cell.shadowImageView.imageView.image else {
             return
         }
         
-        cell.onSelect()
+        currentCell = cell
+        viewModel.selectMovie(image: image)
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let center = view.convert(carouselCollectionView.center, to: carouselCollectionView)
-        guard let indexPath = carouselCollectionView.indexPathForItem(at: center) else { return }
+        let collectionViewCenter = view.convert(rootView.carouselCollectionView.center,
+                                                to: rootView.carouselCollectionView)
+        guard let indexPath = rootView.carouselCollectionView.indexPathForItem(at: collectionViewCenter) else { return }
         
-        if indexPath.row != pageControl.currentPage {
+        if indexPath.row != rootView.pageControl.currentPage {
             updateCurrentPage(indexPath.row)
         }
     }
@@ -136,6 +91,6 @@ extension CarouselViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: cellWidth, height: cellWidth * 1.5)
+        return CGSize(width: cellWidth, height: cellWidth * 2)
     }
 }

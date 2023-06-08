@@ -7,16 +7,19 @@
 
 import Foundation
 import Combine
+import UIKit
 
 protocol DashboardContentViewModel {
     var statePublisher: AnyPublisher<DashboardContentViewState, Never> { get }
     
     func load()
+    func onSelectMovie(image: UIImage)
 }
 
 final class DashboardContentViewModelImpl: DashboardContentViewModel {
     private let provider: DashboardContentProvider
     private let stateMachine: DashboardContentStateMachine
+    private let navigation: DashboardContentNavigation
     
     private let stateSubject = CurrentValueSubject<DashboardContentViewState, Never>(.loading)
     var statePublisher: AnyPublisher<DashboardContentViewState, Never> {
@@ -25,9 +28,12 @@ final class DashboardContentViewModelImpl: DashboardContentViewModel {
     
     private var cancellables = Set<AnyCancellable>()
     
-    init(provider: DashboardContentProvider, stateMachine: DashboardContentStateMachine) {
+    init(provider: DashboardContentProvider,
+         stateMachine: DashboardContentStateMachine,
+         navigation: DashboardContentNavigation) {
         self.provider = provider
         self.stateMachine = stateMachine
+        self.navigation = navigation
     }
     
     func load() {
@@ -42,5 +48,9 @@ final class DashboardContentViewModelImpl: DashboardContentViewModel {
             }
             .store(in: &cancellables)
 
+    }
+    
+    func onSelectMovie(image: UIImage) {
+        navigation.movieSelected(image: image)
     }
 }

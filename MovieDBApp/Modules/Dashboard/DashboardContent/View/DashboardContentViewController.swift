@@ -10,7 +10,7 @@ import UIKit
 import Combine
 
 final class DashboardContentViewController: MVVMViewController<DashboardContentViewModel> {
-    private var carousel: CarouselViewController!
+    var carousel: CarouselViewController!
     private var activityIndicator: UIActivityIndicatorView!
     
     private var cancellables = Set<AnyCancellable>()
@@ -53,7 +53,8 @@ private extension DashboardContentViewController {
     }
     
     func setupCarousel() {
-        carousel = CarouselViewController()
+        let viewModel = CarouselViewModelImpl(onMovieSelected: viewModel.onSelectMovie)
+        carousel = CarouselViewController(viewModel: viewModel)
         
         add(childController: carousel, on: view)
         carousel.view.translatesAutoresizingMaskIntoConstraints = false

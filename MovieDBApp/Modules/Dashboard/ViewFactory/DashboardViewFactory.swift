@@ -10,10 +10,13 @@ import UIKit
 import Swinject
 
 protocol DashboardViewControllerFactory {
+    var navigation: DashboardContentNavigation? { get set}
     func viewController(for segment: DashboardSegment) -> UIViewController
 }
 
 struct DashboardViewControllerFactoryImpl: DashboardViewControllerFactory {
+    var navigation: DashboardContentNavigation?
+    
     func viewController(for segment: DashboardSegment) -> UIViewController {
         switch segment {
         case .popular:
@@ -46,8 +49,12 @@ private extension DashboardViewControllerFactoryImpl {
     }
     
     func createViewController(provider: DashboardContentProvider) -> UIViewController {
+        guard let navigation else { return UIViewController() }
+        
         let stateMachine = DashboardContentStateMachine()
-        let viewModel = DashboardContentViewModelImpl(provider: provider, stateMachine: stateMachine)
+        let viewModel = DashboardContentViewModelImpl(provider: provider,
+                                                      stateMachine: stateMachine,
+                                                      navigation: navigation)
         let viewController = DashboardContentViewController(viewModel: viewModel)
         return viewController
     }

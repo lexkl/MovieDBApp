@@ -14,8 +14,9 @@ protocol EmptyValue {
 }
 
 struct NetworkAgent {
-    func send<T: Decodable & EmptyValue, ErrorType: Error>(request: DataRequest,
-                                                           mapError: @escaping(Error) -> ErrorType) -> AnyPublisher<T, ErrorType> {
+    func send<T: Decodable & EmptyValue,
+                ErrorType: Error>(request: DataRequest,
+                                  mapError: @escaping(Error) -> ErrorType) -> AnyPublisher<T, ErrorType> {
         AF.request(request.url,
                    method: request.method,
                    parameters: request.queryItems,
