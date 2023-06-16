@@ -72,8 +72,10 @@ extension CarouselViewController: UICollectionViewDelegate, UICollectionViewData
             return
         }
         
+        let movieId = data[indexPath.item].movieId
+        
         currentCell = cell
-        viewModel.selectMovie(image: image)
+        viewModel.selectMovie(image: image, movieId: movieId)
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {

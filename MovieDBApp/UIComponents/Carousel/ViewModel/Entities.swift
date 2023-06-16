@@ -15,4 +15,5 @@ struct CarouselMoviePresentable: Identifiable {
     let image: UIImage?
     let genres: String
     let score: String
+    let movieId: Int
 }

@@ -8,7 +8,7 @@
 import Foundation
 import Alamofire
 
-struct APIMovie: Decodable, EmptyValue {
+struct APIMovie: Decodable {
     let poster_path: String?
     let adult: Bool?
     let overview: String?
@@ -23,24 +23,13 @@ struct APIMovie: Decodable, EmptyValue {
     let vote_count: Int?
     let video: Bool?
     let vote_average: Float?
-    
-    static func empty() -> APIMovie {
-        APIMovie(poster_path: "", adult: false, overview: "", release_date: "",
-                 genre_ids: [], id: 0, original_title: "", original_language: "",
-                 title: "", backdrop_path: "", popularity: 0.0, vote_count: 0,
-                 video: false, vote_average: 0.0)
-    }
 }
 
-struct GetMoviesResponse: Decodable, EmptyValue {
+struct GetMoviesResponse: Decodable {
     let page: Int?
     let results: [APIMovie]?
     let total_results: Int?
     let total_pages: Int?
-    
-    static func empty() -> GetMoviesResponse {
-        GetMoviesResponse(page: 0, results: [], total_results: 0, total_pages: 0)
-    }
 }
 
 struct GetPopularMoviesRequest: DataRequest {
@@ -60,11 +49,16 @@ struct GetPopularMoviesRequest: DataRequest {
         self.configuration = configuration
     }
     
+    var headers: [String: String] {
+        [
+            "Authorization": "Bearer \(configuration.apiKey)"
+        ]
+    }
+    
     var queryItems: [String: String] {
         [
-            "api_key": configuration.apiKey,
-            "page": "\(page)",
-            "language": "\(language)"
+            "page": String(page),
+            "language": language
         ]
     }
 }

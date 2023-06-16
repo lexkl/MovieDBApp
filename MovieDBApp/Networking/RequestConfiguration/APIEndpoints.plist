@@ -8,8 +8,8 @@
 	<string>authentication/session/new</string>
 	<key>moviePopular</key>
 	<string>movie/popular</string>
-	<key>movieUpcoming</key>
-	<string>movie/upcoming</string>
+	<key>movieDetails</key>
+	<string>movie/%@</string>
 	<key>genres</key>
 	<string>genre/movie/list</string>
 </dict>

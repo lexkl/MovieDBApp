@@ -30,7 +30,7 @@ struct PopularMoviesServiceImpl: PopularMoviesService {
 
 struct PopularMovieServiceMock: PopularMoviesService {
     func load(page: Int) -> AnyPublisher<GetMoviesResponse, Error> {
-        Just(GetMoviesResponse.empty())
+        Just(GetMoviesResponse(page: 0, results: [], total_results: 0, total_pages: 0))
             .setFailureType(to: Error.self)
             .eraseToAnyPublisher()
     }

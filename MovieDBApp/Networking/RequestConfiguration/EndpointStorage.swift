@@ -9,7 +9,7 @@ import Foundation
 
 enum APIEndpoint: String {
     case moviePopular
-    case movieUpcoming
+    case movieDetails
     case genres
 }
 

@@ -31,9 +31,11 @@ private extension DashboardViewControllerFactoryImpl {
     func popular() -> UIViewController {
         let moviesService = Container.shared.resolve(PopularMoviesService.self)!
         let imageService = Container.shared.resolve(ImageService.self)!
+        let genresService = Container.shared.resolve(GenresService.self)!
         let urlFormatter = Container.shared.resolve(URLFormatter.self)!
         let provider = PopularMoviesProvider(contentService: moviesService,
                                              imageService: imageService,
+                                             genresService: genresService,
                                              urlFormatter: urlFormatter)
         return createViewController(provider: provider)
     }
@@ -41,9 +43,11 @@ private extension DashboardViewControllerFactoryImpl {
     func new() -> UIViewController {
         let moviesService = Container.shared.resolve(PopularMoviesService.self)!
         let imageService = Container.shared.resolve(ImageService.self)!
+        let genresService = Container.shared.resolve(GenresService.self)!
         let urlFormatter = Container.shared.resolve(URLFormatter.self)!
         let provider = PopularMoviesProvider(contentService: moviesService,
                                              imageService: imageService,
+                                             genresService: genresService,
                                              urlFormatter: urlFormatter)
         return createViewController(provider: provider)
     }

@@ -13,7 +13,7 @@ protocol DashboardContentViewModel {
     var statePublisher: AnyPublisher<DashboardContentViewState, Never> { get }
     
     func load()
-    func onSelectMovie(image: UIImage)
+    func onSelectMovie(image: UIImage, movieId: Int)
 }
 
 final class DashboardContentViewModelImpl: DashboardContentViewModel {
@@ -50,7 +50,7 @@ final class DashboardContentViewModelImpl: DashboardContentViewModel {
 
     }
     
-    func onSelectMovie(image: UIImage) {
-        navigation.movieSelected(image: image)
+    func onSelectMovie(image: UIImage, movieId: Int) {
+        navigation.movieSelected(image: image, movieId: movieId)
     }
 }

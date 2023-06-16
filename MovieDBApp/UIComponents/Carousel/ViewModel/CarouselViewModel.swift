@@ -9,17 +9,17 @@ import Foundation
 import UIKit
 
 protocol CarouselViewModel {
-    func selectMovie(image: UIImage)
+    func selectMovie(image: UIImage, movieId: Int)
 }
 
 struct CarouselViewModelImpl: CarouselViewModel {
-    private let onMovieSelected: (UIImage) -> Void
+    private let onMovieSelected: (UIImage, Int) -> Void
     
-    init(onMovieSelected: @escaping (UIImage) -> Void) {
+    init(onMovieSelected: @escaping (UIImage, Int) -> Void) {
         self.onMovieSelected = onMovieSelected
     }
     
-    func selectMovie(image: UIImage) {
-        onMovieSelected(image)
+    func selectMovie(image: UIImage, movieId: Int) {
+        onMovieSelected(image, movieId)
     }
 }

@@ -11,4 +11,5 @@ enum APIError: Error {
     case unknownError(underlyingError: Error)
     case invalidData
     case parsingError(description: String)
+    case emptyData
 }

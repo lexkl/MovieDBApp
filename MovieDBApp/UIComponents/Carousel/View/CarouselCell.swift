@@ -65,7 +65,6 @@ final class CarouselCell: UICollectionViewCell {
         shadowImageView.setImage(image: image)
         titleLabel.text = title
         genresLabel.text = genres
-        //scoreLabel.text = score
     }
 }
 

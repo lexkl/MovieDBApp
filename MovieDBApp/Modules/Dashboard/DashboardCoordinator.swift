@@ -15,7 +15,7 @@ protocol DashboardNavigation: AnyObject {
 }
 
 protocol DashboardContentNavigation: AnyObject {
-    func movieSelected(image: UIImage)
+    func movieSelected(image: UIImage, movieId: Int)
 }
 
 final class DashboardCoordinator: NSObject, Coordinator {
@@ -64,11 +64,29 @@ extension DashboardCoordinator: DashboardNavigation {
 // MARK: - DashboardContentNavigation
 
 extension DashboardCoordinator: DashboardContentNavigation {
-    func movieSelected(image: UIImage) {
-        let viewModel = MovieDetailsViewModelImpl(posterImage: image)
+    func movieSelected(image: UIImage, movieId: Int) {
+        let service = Container.shared.resolve(MovieDetailsService.self)!
+        let provider = MovieDetailsProviderImpl(service: service)
+        let viewModel = MovieDetailsViewModelImpl(posterImage: image, movieId: movieId, provider: provider)
         let viewController = MovieDetailsViewController(viewModel: viewModel)
+        viewController.navigationItem.hidesBackButton = true
+        viewController.navigationItem.rightBarButtonItem = createBackButton()
         navigation.pushViewController(viewController, animated: true)
         navigation.setNavigationBarHidden(false, animated: false)
+    }
+    
+    @objc
+    private func onBack() {
+        navigation.popViewController(animated: true)
+    }
+    
+    private func createBackButton() -> UIBarButtonItem {
+        let backButton = UIBarButtonItem(image: UIImage(systemName: "xmark.circle.fill"),
+                                         style: .plain,
+                                         target: self,
+                                         action: #selector(onBack))
+        backButton.tintColor = UIColor.black
+        return backButton
     }
 }
 
@@ -79,50 +97,16 @@ extension DashboardCoordinator: UINavigationControllerDelegate {
                               animationControllerFor operation: UINavigationController.Operation,
                               from fromVC: UIViewController,
                               to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        if operation == .push {
-            return CustomTransition()
-        }
         
-        return nil
-    }
-}
-
-// MARK: - UIViewControllerAnimatedTransitioning
-
-extension DashboardCoordinator: UIViewControllerAnimatedTransitioning {
-    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return 0.5
-    }
-    
-    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
-//        print(transitionContext.viewController(forKey: .from)?.children)
-//        guard
-//            let fromViewController = transitionContext.viewController(forKey: .from)?.children.first as? DashboardContentViewController,
-//            let toViewController = transitionContext.viewController(forKey: .to) as? MovieDetailsViewController,
-//            let currentCell = fromViewController.carousel.currentCell
-//        else { return }
-//        
-//        let containerView = transitionContext.containerView
-//        let snapshot = UIImageView()
-//        snapshot.contentMode = .scaleAspectFit
-//        snapshot.frame = containerView.convert(currentCell.shadowImageView.frame, from: currentCell)
-//        
-//        containerView.addSubview(toViewController.view)
-//        containerView.addSubview(snapshot)
-//        
-//        toViewController.view.isHidden = true
-//        
-//        
-//        let animator = UIViewPropertyAnimator(duration: 0.5, curve: .easeInOut) {
-//            snapshot.frame = containerView.convert(toViewController.view.frame, from: toViewController.view)
-//        }
-//
-//        animator.addCompletion { position in
-//            toViewController.view.isHidden = false
-//            snapshot.removeFromSuperview()
-//            transitionContext.completeTransition(position == .end)
-//        }
-//
-//        animator.startAnimation()
+        switch operation {
+        case .none:
+            return nil
+        case .push:
+            return MovieDetailsTransitionPush()
+        case .pop:
+            return MovieDetailsTransitionPop()
+        @unknown default:
+            return nil
+        }
     }
 }

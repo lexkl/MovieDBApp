@@ -14,6 +14,7 @@ struct MovieData {
     let imageURL: String
     let genres: String
     let score: String
+    let movieId: Int
 }
 
 struct MovieDataPresentable {
@@ -21,11 +22,13 @@ struct MovieDataPresentable {
     let image: UIImage?
     let genres: String
     let score: String
+    let movieId: Int
 }
 
 protocol DashboardContentProvider {
     var contentService: DashboardContentService { get }
     var imageService: ImageService { get }
+    var genresService: GenresService { get }
     
     func load(page: Int) -> AnyPublisher<[CarouselMoviePresentable], Error>
 }
@@ -37,31 +40,41 @@ protocol DashboardContentService {
 struct PopularMoviesProvider: DashboardContentProvider {
     let contentService: DashboardContentService
     let imageService: ImageService
+    let genresService: GenresService
     private let urlFormatter: URLFormatter
     
-    init(contentService: DashboardContentService, imageService: ImageService, urlFormatter: URLFormatter) {
+    init(contentService: DashboardContentService,
+         imageService: ImageService,
+         genresService: GenresService,
+         urlFormatter: URLFormatter) {
         self.contentService = contentService
         self.imageService = imageService
+        self.genresService = genresService
         self.urlFormatter = urlFormatter
     }
     
     func load(page: Int) -> AnyPublisher<[CarouselMoviePresentable], Error> {
-        fetchMoviesData(page: page, urlFormatter: urlFormatter)
-            .flatMap { movieDataArray in
-                Publishers.Sequence(sequence: movieDataArray)
-                    .flatMap { movieData -> AnyPublisher<MovieDataPresentable, Error> in
-                        return imageService.downloadImage(stringUrl: movieData.imageURL)
-                            .map { MovieDataPresentable(title: movieData.title,
-                                                        image: $0,
-                                                        genres: movieData.genres,
-                                                        score: movieData.score) }
-                            .eraseToAnyPublisher()
+        loadGenres()
+            .flatMap { _ in
+                fetchMoviesData(page: page, urlFormatter: urlFormatter)
+                    .flatMap { movieDataArray in
+                        Publishers.Sequence(sequence: movieDataArray)
+                            .flatMap { movieData -> AnyPublisher<MovieDataPresentable, Error> in
+                                return imageService.downloadImage(stringUrl: movieData.imageURL)
+                                    .map { MovieDataPresentable(title: movieData.title,
+                                                                image: $0,
+                                                                genres: movieData.genres,
+                                                                score: movieData.score,
+                                                                movieId: movieData.movieId) }
+                                    .eraseToAnyPublisher()
+                            }
+                            .map { CarouselMoviePresentable(title: $0.title,
+                                                            image: $0.image,
+                                                            genres: $0.genres,
+                                                            score: $0.score,
+                                                            movieId: $0.movieId) }
+                            .collect()
                     }
-                    .map { CarouselMoviePresentable(title: $0.title,
-                                                    image: $0.image,
-                                                    genres: $0.genres,
-                                                    score: $0.score) }
-                    .collect()
             }
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
@@ -79,7 +92,8 @@ private extension DashboardContentProvider {
                 return results.compactMap { apiMovie in
                         guard let title = apiMovie.title,
                               let genreIds = apiMovie.genre_ids,
-                              let posterPath = apiMovie.poster_path else { return nil }
+                              let posterPath = apiMovie.poster_path,
+                              let movieId = apiMovie.id else { return nil }
                         
                         let urlString = urlFormatter.formatURL(urlKey: .imagesURL,
                                                                PosterSizes.w500.rawValue,
@@ -89,8 +103,40 @@ private extension DashboardContentProvider {
                         return MovieData(title: title,
                                          imageURL: urlString,
                                          genres: genresString,
-                                         score: scoreString)
+                                         score: scoreString,
+                                         movieId: movieId)
                     }
+            }
+            .eraseToAnyPublisher()
+    }
+    
+    func saveGenres(genres: [APIGenre]) -> Future<Bool, Never> {
+        Future { promise in
+            do {
+                try Realm.tryWrite { realm in
+                    for genreAPI in genres {
+                        guard let id = genreAPI.id, let name = genreAPI.name else { return }
+                        
+                        let genre = Genre(id: id, name: name)
+                        realm.add(genre, update: .all)
+                    }
+                }
+            } catch {
+                print(error)
+            }
+            
+            promise(.success(true))
+        }
+    }
+    
+    func loadGenres() -> AnyPublisher<Bool, Error> {
+        genresService.load()
+            .tryMap { response in
+                guard let genres = response.genres else { throw APIError.emptyData }
+                return genres
+            }
+            .flatMap { genres in
+                saveGenres(genres: genres)
             }
             .eraseToAnyPublisher()
     }

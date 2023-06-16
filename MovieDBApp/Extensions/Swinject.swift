@@ -81,5 +81,11 @@ private extension Container {
             let configuration = resolver.resolve(RequestNetworkConfiguration.self)!
             return PopularMoviesServiceImpl(networker: networker, configuration: configuration)
         }
+        
+        container.register(MovieDetailsService.self) { resolver in
+            let networker = resolver.resolve(NetworkAgent.self)!
+            let configuration = resolver.resolve(RequestNetworkConfiguration.self)!
+            return MovieDetailsServiceImpl(networker: networker, configuration: configuration)
+        }
     }
 }

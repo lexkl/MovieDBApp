@@ -31,7 +31,7 @@ struct GenresServiceImpl: GenresService {
 
 struct GenresServiceMock: GenresService {
     func load() -> AnyPublisher<GetGenresResponse, Error> {
-        Just(GetGenresResponse.empty())
+        Just(GetGenresResponse(genres: []))
             .setFailureType(to: Error.self)
             .eraseToAnyPublisher()
     }

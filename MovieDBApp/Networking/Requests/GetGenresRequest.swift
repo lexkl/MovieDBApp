@@ -13,12 +13,8 @@ struct APIGenre: Decodable {
     let name: String?
 }
 
-struct GetGenresResponse: Decodable, EmptyValue {
+struct GetGenresResponse: Decodable {
     let genres: [APIGenre]?
-    
-    static func empty() -> GetGenresResponse {
-        GetGenresResponse(genres: nil)
-    }
 }
 
 struct GetGenresRequest: DataRequest {
@@ -36,9 +32,14 @@ struct GetGenresRequest: DataRequest {
         self.configuration = configuration
     }
     
+    var headers: [String: String] {
+        [
+            "Authorization": "Bearer \(configuration.apiKey)"
+        ]
+    }
+    
     var queryItems: [String: String] {
         [
-            "api_key": configuration.apiKey,
             "language": "\(language)"
         ]
     }
